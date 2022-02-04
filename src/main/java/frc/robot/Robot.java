@@ -38,7 +38,7 @@ public class Robot extends TimedRobot {
   // The P gain for the PID controller that drives this arm.
   private static double kArmKp = 50.0;
 
-  private static double armPositionDeg = 75.0;
+  private static double armPositionDeg = 90.0;
 
   // distance per pulse = (angle per revolution) / (pulses per revolution)
   //  = (2 * PI rads) / (4096 pulses)
@@ -57,16 +57,16 @@ public class Robot extends TimedRobot {
   private static final double m_armReduction = 600;
   private static final double m_armMass = 5.0; // Kilograms
   private static final double m_armLength = Units.inchesToMeters(30);
-  // This arm sim represents an arm that can travel from -75 degrees (rotated down front)
-  // to 255 degrees (rotated down in the back).
+  // This arm sim represents an arm that can travel from 45 degrees (up to the right)
+  // to 100 degrees (up and to the left, almost straight up).
   private final SingleJointedArmSim m_armSim =
       new SingleJointedArmSim(
           m_armGearbox,
           m_armReduction,
           SingleJointedArmSim.estimateMOI(m_armLength, m_armMass),
           m_armLength,
-          Units.degreesToRadians(-75),
-          Units.degreesToRadians(255),
+          Units.degreesToRadians(30),
+          Units.degreesToRadians(120),
           m_armMass,
           true,
           VecBuilder.fill(kArmEncoderDistPerPulse) // Add noise with a std-dev of 1 tick
@@ -135,11 +135,19 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    if (m_joystick.getTrigger()) {
+    if (m_joystick.getRawButton(1)) {
       // Here, we run PID control like normal, with a constant setpoint of 75 degrees.
       var pidOutput =
-          m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(armPositionDeg));
+          m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(90));
       m_motor.setVoltage(pidOutput);
+    } else  if (m_joystick.getRawButton(2)) {
+      var pidOutput =
+          m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(110));
+      m_motor.setVoltage(pidOutput);
+    } else if (m_joystick.getRawButton(3)) {
+        var pidOutput =
+            m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(45));
+        m_motor.setVoltage(pidOutput);
     } else {
       // Otherwise, we disable the motor.
       m_motor.set(0.0);
