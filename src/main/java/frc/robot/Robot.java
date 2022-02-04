@@ -53,8 +53,8 @@ public class Robot extends TimedRobot {
   private final DCMotor m_armGearbox = DCMotor.getNEO(2);
 
   // Standard classes for controlling our arm
-  private final PIDController m_controller = new PIDController(kArmKp, 0, 0);
-  //private final ProfiledPIDController m_controller = new ProfiledPIDController(kArmKp, 0, 0, new Constraints(Math.PI/2, Math.PI/2));
+  //private final PIDController m_controller = new PIDController(kArmKp, 0, 0);
+  private final ProfiledPIDController m_controller = new ProfiledPIDController(kArmKp, 0, 0, new Constraints(Math.PI/2, Math.PI/2));
   private final Encoder m_encoder = new Encoder(kEncoderAChannel, kEncoderBChannel);
   private final PWMSparkMax m_motor = new PWMSparkMax(kMotorPort);
   private final Joystick m_joystick = new Joystick(kJoystickPort);
@@ -62,7 +62,7 @@ public class Robot extends TimedRobot {
   // Simulation classes help us simulate what's going on, including gravity.
   private static final double m_armReduction = 70.31;
   private static final double m_armMass = Units.lbsToKilograms(145); // Kilograms
-  private static final double m_armLength = Units.inchesToMeters(18);
+  private static final double m_armLength = Units.inchesToMeters(12);
   // This arm sim represents an arm that can travel from 45 degrees (up to the right)
   // to 100 degrees (up and to the left, almost straight up).
   private final SingleJointedArmSim m_armSim =
