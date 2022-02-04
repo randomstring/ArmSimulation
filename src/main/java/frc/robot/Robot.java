@@ -6,7 +6,9 @@ package frc.robot;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
@@ -24,6 +26,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
+import edu.wpi.first.wpilibj2.command.ProfiledPIDCommand;
 
 /** This is a sample program to demonstrate the use of arm simulation with existing code. */
 public class Robot extends TimedRobot {
@@ -37,11 +40,13 @@ public class Robot extends TimedRobot {
 
   // The P gain for the PID controller that drives this arm.
   private static double kArmKp = 50.0;
-
   private static double armPositionDeg = 90.0;
+
+  private double setpoint = armPositionDeg;
 
   // distance per pulse = (angle per revolution) / (pulses per revolution)
   //  = (2 * PI rads) / (4096 pulses)
+  // TODO: change to through REV bore encoder 8192 pulses per revolution
   private static final double kArmEncoderDistPerPulse = 2.0 * Math.PI / 4096;
 
   // The arm gearbox represents a gearbox containing two NEO motors.
@@ -49,6 +54,7 @@ public class Robot extends TimedRobot {
 
   // Standard classes for controlling our arm
   private final PIDController m_controller = new PIDController(kArmKp, 0, 0);
+  //private final ProfiledPIDController m_controller = new ProfiledPIDController(kArmKp, 0, 0, new Constraints(Math.PI/2, Math.PI/2));
   private final Encoder m_encoder = new Encoder(kEncoderAChannel, kEncoderBChannel);
   private final PWMSparkMax m_motor = new PWMSparkMax(kMotorPort);
   private final Joystick m_joystick = new Joystick(kJoystickPort);
@@ -136,22 +142,16 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     if (m_joystick.getRawButton(1)) {
-      // Here, we run PID control like normal, with a constant setpoint of 75 degrees.
-      var pidOutput =
-          m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(90));
-      m_motor.setVoltage(pidOutput);
+      setpoint = 110.0;
     } else  if (m_joystick.getRawButton(2)) {
-      var pidOutput =
-          m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(110));
-      m_motor.setVoltage(pidOutput);
+      setpoint = 90.0;
     } else if (m_joystick.getRawButton(3)) {
-        var pidOutput =
-            m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(45));
-        m_motor.setVoltage(pidOutput);
-    } else {
-      // Otherwise, we disable the motor.
-      m_motor.set(0.0);
+      setpoint = 45.0;
     }
+
+    var pidOutput =
+      m_controller.calculate(m_encoder.getDistance(), Units.degreesToRadians(setpoint));
+    m_motor.setVoltage(pidOutput);
   }
 
   @Override
