@@ -44,8 +44,8 @@ public class Robot extends TimedRobot {
   //  = (2 * PI rads) / (4096 pulses)
   private static final double kArmEncoderDistPerPulse = 2.0 * Math.PI / 4096;
 
-  // The arm gearbox represents a gearbox containing two Vex 775pro motors.
-  private final DCMotor m_armGearbox = DCMotor.getVex775Pro(2);
+  // The arm gearbox represents a gearbox containing two NEO motors.
+  private final DCMotor m_armGearbox = DCMotor.getNEO(2);
 
   // Standard classes for controlling our arm
   private final PIDController m_controller = new PIDController(kArmKp, 0, 0);
@@ -54,9 +54,9 @@ public class Robot extends TimedRobot {
   private final Joystick m_joystick = new Joystick(kJoystickPort);
 
   // Simulation classes help us simulate what's going on, including gravity.
-  private static final double m_armReduction = 600;
-  private static final double m_armMass = 5.0; // Kilograms
-  private static final double m_armLength = Units.inchesToMeters(30);
+  private static final double m_armReduction = 70.31;
+  private static final double m_armMass = Units.lbsToKilograms(145); // Kilograms
+  private static final double m_armLength = Units.inchesToMeters(18);
   // This arm sim represents an arm that can travel from 45 degrees (up to the right)
   // to 100 degrees (up and to the left, almost straight up).
   private final SingleJointedArmSim m_armSim =

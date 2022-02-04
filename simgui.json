@@ -7,11 +7,6 @@
       "/SmartDashboard/Arm Sim": "Mechanism2d"
     },
     "windows": {
-      "/LiveWindow/Ungrouped/PIDController[1]": {
-        "window": {
-          "visible": true
-        }
-      },
       "/SmartDashboard/Arm Sim": {
         "window": {
           "visible": true
