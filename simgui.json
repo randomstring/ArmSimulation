@@ -1,5 +1,10 @@
 {
   "HALProvider": {
+    "PWM Outputs": {
+      "window": {
+        "visible": true
+      }
+    },
     "RoboRIO": {
       "RoboRIO Input": {
         "open": true
