@@ -33,6 +33,9 @@ public class Robot extends TimedRobot {
   private static final int kMotorPort = 0;
   private static final int kEncoderAChannel = 0;
   private static final int kEncoderBChannel = 1;
+  private static final int kPivotMotorPort = 1;
+  private static final int kPivotEncoderAChannel = 2;
+  private static final int kPivotEncoderBChannel = 3;
   private static final int kJoystickPort = 0;
 
   public static final String kArmPositionKey = "ArmPosition";
@@ -40,7 +43,7 @@ public class Robot extends TimedRobot {
 
   // The P gain for the PID controller that drives this arm.
   private static double kArmKp = 50.0;
-  private static double armPositionDeg = 90.0;
+  private static double armPositionDeg = 270.0;
 
   private double setpoint = armPositionDeg;
 
@@ -54,44 +57,56 @@ public class Robot extends TimedRobot {
 
   // Standard classes for controlling our arm
   //private final PIDController m_controller = new PIDController(kArmKp, 0, 0);
-  private final ProfiledPIDController m_controller = new ProfiledPIDController(kArmKp, 0, 0, new Constraints(Math.PI/2, Math.PI/2));
+  private final ProfiledPIDController m_controller = new ProfiledPIDController(kArmKp, 0, 0, new Constraints(Math.PI, Math.PI));
   private final Encoder m_encoder = new Encoder(kEncoderAChannel, kEncoderBChannel);
   private final PWMSparkMax m_motor = new PWMSparkMax(kMotorPort);
   private final Joystick m_joystick = new Joystick(kJoystickPort);
 
   // Simulation classes help us simulate what's going on, including gravity.
   private static final double m_armReduction = 70.31;
-  private static final double m_armMass = Units.lbsToKilograms(145); // Kilograms
-  private static final double m_armLength = Units.inchesToMeters(12);
-  // This arm sim represents an arm that can travel from 45 degrees (up to the right)
-  // to 100 degrees (up and to the left, almost straight up).
+  private static final double m_armMass = Units.lbsToKilograms(10);
+  private static final double m_armLength = Units.inchesToMeters(36);
+  private static final double m_robotMass = Units.lbsToKilograms(145);
+  private static final double m_robotCGdistance = Units.inchesToMeters(8);
+
+  // This arm sim represents an arm hanging from a point with a robot on the end
   private final SingleJointedArmSim m_armSim =
       new SingleJointedArmSim(
           m_armGearbox,
           m_armReduction,
-          SingleJointedArmSim.estimateMOI(m_armLength, m_armMass),
+          SingleJointedArmSim.estimateMOI(m_robotCGdistance, m_robotMass),
           m_armLength,
-          Units.degreesToRadians(30),
-          Units.degreesToRadians(120),
-          m_armMass,
+          Units.degreesToRadians(180),
+          Units.degreesToRadians(360),
+          m_robotMass,
           true,
           VecBuilder.fill(kArmEncoderDistPerPulse) // Add noise with a std-dev of 1 tick
           );
+
   private final EncoderSim m_encoderSim = new EncoderSim(m_encoder);
 
   // Create a Mechanism2d display of an Arm with a fixed ArmTower and moving Arm.
   private final Mechanism2d m_mech2d = new Mechanism2d(60, 60);
-  private final MechanismRoot2d m_armPivot = m_mech2d.getRoot("ArmPivot", 30, 30);
-  private final MechanismLigament2d m_armTower =
-      m_armPivot.append(new MechanismLigament2d("ArmTower", 30, -90));
+  private final MechanismRoot2d m_armPivot = m_mech2d.getRoot("BarPivot", 30, 60);
+
   private final MechanismLigament2d m_arm =
       m_armPivot.append(
           new MechanismLigament2d(
               "Arm",
               30,
-              Units.radiansToDegrees(m_armSim.getAngleRads()),
+              270,
               6,
-              new Color8Bit(Color.kYellow)));
+              new Color8Bit(Color.kOrange)));
+
+  private final MechanismLigament2d m_robot = 
+      m_arm.append(
+        new MechanismLigament2d(
+          "Robot",
+          6,
+          Units.radiansToDegrees(m_armSim.getAngleRads()),
+          40,
+          new Color8Bit(Color.kBlue)));
+
 
   @Override
   public void robotInit() {
@@ -99,7 +114,7 @@ public class Robot extends TimedRobot {
 
     // Put Mechanism 2d to SmartDashboard
     SmartDashboard.putData("Arm Sim", m_mech2d);
-    m_armTower.setColor(new Color8Bit(Color.kBlue));
+    //m_armTower.setColor(new Color8Bit(Color.kBlue));
 
     // Set the Arm position setpoint and P constant to Preferences if the keys don't already exist
     if (!Preferences.containsKey(kArmPositionKey)) {
@@ -126,7 +141,8 @@ public class Robot extends TimedRobot {
         BatterySim.calculateDefaultBatteryLoadedVoltage(m_armSim.getCurrentDrawAmps()));
 
     // Update the Mechanism Arm angle based on the simulated arm angle
-    m_arm.setAngle(Units.radiansToDegrees(m_armSim.getAngleRads()));
+    //m_arm.setAngle(270);
+    m_robot.setAngle(Units.radiansToDegrees(m_armSim.getAngleRads()));
   }
 
   @Override
@@ -142,11 +158,11 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     if (m_joystick.getRawButton(1)) {
-      setpoint = 110.0;
+      setpoint = 225.0;
     } else  if (m_joystick.getRawButton(2)) {
-      setpoint = 90.0;
+      setpoint = 270.0;
     } else if (m_joystick.getRawButton(3)) {
-      setpoint = 45.0;
+      setpoint = 360.0 - 45.0;
     }
 
     var pidOutput =
